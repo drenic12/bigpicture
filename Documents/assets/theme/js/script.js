@@ -1,6 +1,7 @@
 (function($) {
 
     var isBuilder = $('html').hasClass('is-builder');
+    var test = $('html').hasClass('is-builder');
 
     $.extend($.easing, {
         easeInOutCubic: function(x, t, b, c, d) {
