@@ -1,0 +1,94 @@
+
+
+
+#Generate Access Token to use in the connection string to MSGraph
+$appID='a563f214-e025-63eg-y548-7e43e5d791w5'
+$TenantId = 'tq12z3u4-1552-41a9-5e12-1i8788po5n97'
+$appSecret = '~tp3Y~VAMTJxpo-1evTGgTB3hIQQbYEDNEbp8e.p'
+
+
+
+$username='' #enter your userID with admin agent rights in partner center 
+$uri="https://login.microsoftonline.com/$tenantId/oauth2/token";
+$VM = Get-AzVM -ResourceGroupName $RG.ResourceGroupName -Name ""
+
+$body=@{
+
+scope='https://graph.microsoft.com'
+client_id=$appID
+client_secret=$appSecret
+grant_type='password'
+username = $username
+password = $StringPassword
+resource='https://management.azure.com'
+}
+
+
+
+$token=Invoke-RestMethod -Uri $uri -Method Post -Body $body 
+
+
+$headers = @{
+        'Content-Type' = 'application/json'
+        Accept = 'application/json'
+        Authorization = 'Bearer '+$($token.access_token)
+    }
+
+<#$url = "https://management.azure.com/" + $vm.Id + "/extensions/MDE.Windows?api-version=2015-06-15"#>
+
+$url = "https://management.azure.com/" + $vm.Id + "/extensions/MDE.Linux?api-version=2015-06-15"
+
+$getURI = "https://management.azure.com/subscriptions/7e13a144-e02e-4340-aed9-27256d322782/providers/Microsoft.Security/mdeOnboardings?api-version=2021-10-01-preview"
+
+$content = Invoke-WebRequest -Method Get -Uri $getURI -Headers $headers  -ErrorAction Stop
+$Script = ($content.Content | ConvertFrom-Json)
+
+<#Windows
+$body = @{
+  "name" ="MDE.Windows"
+  "id"= $vm.Id + "/extensions/MDE.Windows"
+  "type" = "Microsoft.Compute/virtualMachines/extensions"
+  "location" = $vm.Location
+  "properties" =  @{
+    "autoUpgradeMinorVersion" = "true"
+    "publisher" = "Microsoft.Azure.AzureDefenderForServers"
+    "type" = "MDE.Windows"
+    "typeHandlerVersion" = "1.0"
+    "settings" = @{
+        "azureResourceId" = $vm.Id
+        "vNextEnabled"= "true"
+    }
+    "protectedSettings" = @{
+      "defenderForEndpointOnboardingScript" = $Script.value.properties.onboardingPackageWindows
+    }
+  }
+
+}
+#>
+
+
+$body = @{
+  "name" ="MDE.Linux"
+  "id"= $vm.Id + "/extensions/MDE.Linux"
+  "type" = "Microsoft.Compute/virtualMachines/extensions"
+  "location" = $vm.Location
+  "properties" =  @{
+    "autoUpgradeMinorVersion" = "true"
+    "publisher" = "Microsoft.Azure.AzureDefenderForServers"
+    "type" = "MDE.Linux"
+    "typeHandlerVersion" = "1.0"
+    "settings" = @{
+        "azureResourceId" = $vm.Id
+        "vNextEnabled"= "true"
+    }
+    "protectedSettings" = @{
+      "defenderForEndpointOnboardingScript" = $Script.value.properties.onboardingPackageWindows
+    }
+  }
+  
+}
+
+
+
+
+Invoke-WebRequest -Method Put -Uri $url -Headers $headers -Body ($body|ConvertTo-Json) -ContentType "application/json" -ErrorAction Stop
