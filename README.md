@@ -1,5 +1,5 @@
 # Tailwind Traders - Sample Reference Applications
-# Update Tailwinds
+# Update Tailwinds 2
 now with branch protection on main!
 
 We are happy to announce the release of Tailwind Traders. A fictitious retail company showcasing the future of intelligent application experiences. These reference apps are all are powered by the Azure cloud, built with best-in-class tools, and made smarter through data and AI.
